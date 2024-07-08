@@ -101,4 +101,4 @@ __tests__/runner/*
 .vscode
 *.code-workspace
 
-node_module
+./node_modules
