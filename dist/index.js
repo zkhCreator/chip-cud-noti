@@ -47739,7 +47739,7 @@ ${pendingInterceptorsFormatter.format(pending)}
           card: {
             type: "template",
             data: {
-              template_id: "AAqkeNyiypMLb",
+              template_id: "AAqHJCUcCVFGv",
               template_version_name: "1.0.8",
               template_variable: {
                 repo: repo,
