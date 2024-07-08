@@ -51,8 +51,8 @@ export function BuildGithubNotificationCard(
     card: {
       type: "template",
       data: {
-        template_id: "AAqkeNyiypMLb",
-        template_version_name: "1.0.8",
+        template_id: "AAqHJCUcCVFGv",
+        template_version_name: "1.0.1",
         template_variable: {
           repo: repo,
           eventType: eventType,
