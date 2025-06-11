@@ -3,22 +3,16 @@ import { Repository } from "./trend";
 type NotificationCard = {
   repo: string;
   eventType: string;
-  themeColor: string;
-  auser: string;
-  avatar: string;
   status: string;
   etitle: string;
   detailurl: string;
-};
-
-type TrendingCard = {
-  object_list_1: Repository[];
+  build_status: string;
 };
 
 type CardData = {
   template_id: string;
   template_version_name: string;
-  template_variable: NotificationCard | TrendingCard;
+  template_variable: NotificationCard;
 };
 
 type CardType = {
@@ -38,11 +32,10 @@ export function BuildGithubNotificationCard(
   sign: string,
   repo: string,
   eventType: string,
-  color: string = "blue",
-  user: string,
   status: string,
   etitle: string,
   detailurl: string,
+  build_status: string,
 ): string {
   const ncard: CardMessage = {
     timestamp: `${tm}`,
@@ -52,16 +45,14 @@ export function BuildGithubNotificationCard(
       type: "template",
       data: {
         template_id: "AAqHJCUcCVFGv",
-        template_version_name: "1.0.1",
+        template_version_name: "1.0.3",
         template_variable: {
           repo: repo,
           eventType: eventType,
-          themeColor: color,
-          auser: user,
-          avatar: "img_v2_9dd98485-2900-4d65-ada9-e31d1408dcfg",
           status: status,
           etitle: etitle,
           detailurl: detailurl,
+          build_status: build_status,
         },
       },
     },
@@ -69,25 +60,3 @@ export function BuildGithubNotificationCard(
   return JSON.stringify(ncard);
 }
 
-export function BuildGithubTrendingCard(
-  tm: number,
-  sign: string,
-  repos: Repository[],
-): string {
-  const tcard: CardMessage = {
-    timestamp: `${tm}`,
-    sign: sign,
-    msg_type: "interactive",
-    card: {
-      type: "template",
-      data: {
-        template_id: "AAqkpVra76ijV",
-        template_version_name: "1.0.0",
-        template_variable: {
-          object_list_1: repos,
-        },
-      },
-    },
-  };
-  return JSON.stringify(tcard);
-}

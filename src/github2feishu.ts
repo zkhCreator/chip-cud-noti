@@ -2,18 +2,7 @@ import * as core from "@actions/core";
 import { context } from "@actions/github";
 import getTrending from "./trend";
 import { sign_with_timestamp, PostToFeishu } from "./feishu";
-import { BuildGithubTrendingCard, BuildGithubNotificationCard } from "./card";
-
-async function PostGithubTrending(
-  webhookId: string,
-  timestamp: number,
-  sign: string,
-): Promise<number | undefined> {
-  return getTrending().then((repos) => {
-    const cardmsg = BuildGithubTrendingCard(timestamp, sign, repos);
-    return PostToFeishu(webhookId, cardmsg);
-  });
-}
+import { BuildGithubNotificationCard } from "./card";
 
 export async function PostGithubEvent(): Promise<number | undefined> {
   const webhook = core.getInput("webhook")
@@ -30,10 +19,10 @@ export async function PostGithubEvent(): Promise<number | undefined> {
   const tm = Math.floor(Date.now() / 1000);
   const sign = sign_with_timestamp(tm, signKey);
 
-  const actor = context.actor;
   const eventType = context.eventName;
   const repo = context.payload.repository?.name || "junka";
   var status = context.payload.action || "closed";
+  var build_status = context.payload.conclusion || "success"; // 从 payload 中读取 workflow 执行状态
   var etitle =
     context.payload.issue?.html_url ||
     context.payload.pull_request?.html_url ||
@@ -47,8 +36,10 @@ export async function PostGithubEvent(): Promise<number | undefined> {
       detailurl = context.payload.repository?.html_url || "";
       break;
     case "check_run":
+      build_status = context.payload.check_run?.conclusion || "success";
       break;
     case "check_suite":
+      build_status = context.payload.check_suite?.conclusion || "success";
       break;
     case "create":
       etitle =
@@ -67,8 +58,10 @@ export async function PostGithubEvent(): Promise<number | undefined> {
       detailurl = context.payload.repository?.html_url || "";
       break;
     case "deployment":
+      build_status = context.payload.deployment?.environment || "production";
       break;
     case "deployment_status":
+      build_status = context.payload.deployment_status?.state || "success";
       break;
     case "discussion":
       break;
@@ -126,10 +119,12 @@ export async function PostGithubEvent(): Promise<number | undefined> {
     case "public":
       break;
     case "pull_request":
+      build_status = context.payload.pull_request?.state || "open";
       break;
     case "pull_request_comment":
       break;
     case "pull_request_review":
+      build_status = context.payload.review?.state || "approved";
       break;
     case "pull_request_review_comment":
       break;
@@ -181,8 +176,9 @@ export async function PostGithubEvent(): Promise<number | undefined> {
     case "repository_dispatch":
       break;
     case "schedule":
-      return PostGithubTrending(webhookId, tm, sign);
+      break
     case "status":
+      build_status = context.payload.state || "success";
       break;
     case "watch":
       //trigger at star started
@@ -197,19 +193,17 @@ export async function PostGithubEvent(): Promise<number | undefined> {
     case "workflow_dispatch":
       break;
     case "workflow_run":
+      build_status = context.payload.workflow_run?.conclusion || "success";
       break;
     default:
       break;
   }
 
-  const color: string = "blue";
   const cardmsg = BuildGithubNotificationCard(
     tm,
     sign,
     repo,
     eventType,
-    color,
-    actor,
     status,
     etitle,
     detailurl,
