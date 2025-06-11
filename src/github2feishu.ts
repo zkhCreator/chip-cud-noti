@@ -207,6 +207,7 @@ export async function PostGithubEvent(): Promise<number | undefined> {
     status,
     etitle,
     detailurl,
+    build_status,
   );
   return PostToFeishu(webhookId, cardmsg);
 }
