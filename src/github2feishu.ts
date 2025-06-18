@@ -222,6 +222,8 @@ export async function PostGithubEvent(): Promise<number | undefined> {
       break;
   }
 
+  build_status = core.getInput("status") || build_status;
+  
   const cardmsg = BuildGithubNotificationCard(
     tm,
     sign,

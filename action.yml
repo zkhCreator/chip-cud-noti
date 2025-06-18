@@ -14,6 +14,9 @@ inputs:
   github_token:
     description: "GitHub token for API access (optional, default: GITHUB_TOKEN)"
     required: false
+  status:
+    description: "job status (success/failure/cancelled)"
+    required: false
 outputs:
   code:
     description: "code from response"
