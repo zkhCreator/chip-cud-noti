@@ -29308,6 +29308,26 @@ function PostGithubEvent() {
         const signKey = core.getInput("signkey")
             ? core.getInput("signkey")
             : process.env.FEISHU_BOT_SIGNKEY || "";
+        let jobConclusion = undefined;
+        const token = core.getInput("github_token") || process.env.GITHUB_TOKEN;
+        if (token && process.env.GITHUB_REPOSITORY && process.env.GITHUB_RUN_ID && process.env.GITHUB_JOB) {
+            try {
+                const octokit = (0, github_1.getOctokit)(token);
+                const [owner, repo] = process.env.GITHUB_REPOSITORY.split("/");
+                const run_id = Number(process.env.GITHUB_RUN_ID);
+                const job_name = process.env.GITHUB_JOB;
+                const jobs = yield octokit.rest.actions.listJobsForWorkflowRun({
+                    owner,
+                    repo,
+                    run_id,
+                });
+                const currentJob = jobs.data.jobs.find(j => j.name === job_name);
+                jobConclusion = (currentJob === null || currentJob === void 0 ? void 0 : currentJob.conclusion) || undefined;
+            }
+            catch (e) {
+                core.warning("Failed to fetch job status from GitHub API: " + e);
+            }
+        }
         const payload = github_1.context.payload || {};
         console.log(payload);
         const webhookId = webhook.slice(webhook.indexOf("hook/") + 5);
@@ -29317,6 +29337,9 @@ function PostGithubEvent() {
         const repo = ((_a = github_1.context.payload.repository) === null || _a === void 0 ? void 0 : _a.name) || "junka";
         var status = github_1.context.payload.action || "closed";
         var build_status = github_1.context.payload.conclusion || "success";
+        if (jobConclusion) {
+            build_status = jobConclusion;
+        }
         var etitle = ((_b = github_1.context.payload.issue) === null || _b === void 0 ? void 0 : _b.html_url) ||
             ((_c = github_1.context.payload.pull_request) === null || _c === void 0 ? void 0 : _c.html_url) ||
             "";

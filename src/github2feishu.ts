@@ -1,5 +1,5 @@
 import * as core from "@actions/core";
-import { context } from "@actions/github";
+import { context, getOctokit } from "@actions/github";
 import getTrending from "./trend";
 import { sign_with_timestamp, PostToFeishu } from "./feishu";
 import { BuildGithubNotificationCard } from "./card";
@@ -12,6 +12,26 @@ export async function PostGithubEvent(): Promise<number | undefined> {
     ? core.getInput("signkey")
     : process.env.FEISHU_BOT_SIGNKEY || "";
 
+  let jobConclusion: string | undefined = undefined;
+  const token = core.getInput("github_token") || process.env.GITHUB_TOKEN;
+  if (token && process.env.GITHUB_REPOSITORY && process.env.GITHUB_RUN_ID && process.env.GITHUB_JOB) {
+    try {
+      const octokit = getOctokit(token);
+      const [owner, repo] = process.env.GITHUB_REPOSITORY.split("/");
+      const run_id = Number(process.env.GITHUB_RUN_ID);
+      const job_name = process.env.GITHUB_JOB;
+      const jobs = await octokit.rest.actions.listJobsForWorkflowRun({
+        owner,
+        repo,
+        run_id,
+      });
+      const currentJob = jobs.data.jobs.find(j => j.name === job_name);
+      jobConclusion = currentJob?.conclusion || undefined;
+    } catch (e) {
+      core.warning("Failed to fetch job status from GitHub API: " + e);
+    }
+  }
+
   const payload = context.payload || {};
   console.log(payload);
 
@@ -23,6 +43,9 @@ export async function PostGithubEvent(): Promise<number | undefined> {
   const repo = context.payload.repository?.name || "junka";
   var status = context.payload.action || "closed";
   var build_status = context.payload.conclusion || "success"; // 从 payload 中读取 workflow 执行状态
+  if (jobConclusion) {
+    build_status = jobConclusion;
+  }
   var etitle =
     context.payload.issue?.html_url ||
     context.payload.pull_request?.html_url ||

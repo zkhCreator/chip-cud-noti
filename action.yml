@@ -11,6 +11,9 @@ inputs:
   signkey:
     description: "set when you enable signature verify"
     required: false
+  github_token:
+    description: "GitHub token for API access (optional, default: GITHUB_TOKEN)"
+    required: false
 outputs:
   code:
     description: "code from response"
